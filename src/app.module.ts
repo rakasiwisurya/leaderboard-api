@@ -5,7 +5,6 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ScoresModule } from './scores/scores.module';
-import { logger } from '../logger/logger';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 
 @Module({
@@ -14,16 +13,30 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
 
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        host: config.get('DB_HOST'),
-        port: Number(config.get('DB_PORT')),
-        username: config.get('DB_USERNAME'),
-        password: config.get('DB_PASSWORD'),
-        database: config.get('DB_NAME'),
-        autoLoadEntities: true,
-        synchronize: true,
-      }),
+      // useFactory: (config: ConfigService) => ({
+      //   type: 'postgres',
+      //   host: config.get('DB_HOST'),
+      //   port: Number(config.get('DB_PORT')),
+      //   username: config.get('DB_USERNAME'),
+      //   password: config.get('DB_PASSWORD'),
+      //   database: config.get('DB_NAME'),
+      //   autoLoadEntities: true,
+      //   synchronize: true,
+      // }),
+      useFactory: (config: ConfigService) => {
+        console.log('DB_HOST =', config.get('DB_HOST'));
+
+        return {
+          type: 'postgres',
+          host: config.get('DB_HOST'),
+          port: Number(config.get('DB_PORT')),
+          username: config.get('DB_USERNAME'),
+          password: config.get('DB_PASSWORD'),
+          database: config.get('DB_NAME'),
+          autoLoadEntities: true,
+          synchronize: true,
+        };
+      },
     }),
 
     ThrottlerModule.forRootAsync({

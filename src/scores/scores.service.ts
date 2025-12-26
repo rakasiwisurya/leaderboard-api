@@ -17,15 +17,16 @@ export class ScoresService {
     private readonly userRepo: Repository<User>,
   ) {}
 
-  async submit(score: number, currentUser: User, targetUserId?: number) {
-    const userId = targetUserId ?? currentUser.id;
-
-    if (currentUser.role !== 'admin' && userId !== currentUser.id) {
+  async submit(score: number, targetUsername: string, currentUser: User) {
+    if (
+      currentUser.role !== 'admin' &&
+      currentUser.username !== targetUsername
+    ) {
       throw new ForbiddenException('You can only submit score for yourself');
     }
 
     const user = await this.userRepo.findOne({
-      where: { id: userId },
+      where: { username: targetUsername },
     });
 
     if (!user) {
@@ -37,14 +38,29 @@ export class ScoresService {
       user,
     });
 
-    return this.scoreRepo.save(newScore);
+    const saved = await this.scoreRepo.save(newScore);
+
+    return {
+      message: 'Success add score',
+      data: {
+        username: user.username,
+        score: saved.score,
+      },
+    };
   }
 
   async leaderboard() {
-    return this.scoreRepo.find({
-      relations: ['user'],
-      order: { score: 'DESC' },
-      take: 10,
-    });
+    const data = await this.scoreRepo
+      .createQueryBuilder('score')
+      .innerJoin('score.user', 'user')
+      .select(['user.username AS username', 'score.score AS score'])
+      .orderBy('score.score', 'DESC')
+      .limit(10)
+      .getRawMany();
+
+    return {
+      message: 'Success get leaderboard',
+      data,
+    };
   }
 }

@@ -17,16 +17,8 @@ export class ScoresController {
   constructor(private readonly scoresService: ScoresService) {}
 
   @Post('scores')
-  submit(
-    @Body() dto: CreateScoreDto,
-    @Req() req,
-    @Query('userId') userId?: string, // admin only
-  ) {
-    return this.scoresService.submit(
-      dto.score,
-      req.user,
-      userId ? Number(userId) : undefined,
-    );
+  submit(@Body() dto: CreateScoreDto, @Req() req) {
+    return this.scoresService.submit(dto.score, dto.username, req.user);
   }
 
   @Get('leaderboard')
